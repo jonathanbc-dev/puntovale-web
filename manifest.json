@@ -1,0 +1,11 @@
+{
+  "name": "PuntoVenta Web",
+  "short_name": "PuntoVenta",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F3F6FB",
+  "theme_color": "#1A222E",
+  "icons": [
+    { "src": "icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

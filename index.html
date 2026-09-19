@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1A222E">
+<title>PuntoVenta Web</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="marca">PuntoVenta <span>Web</span></div>
+  <nav class="pestanas">
+    <button class="pestana activa" data-vista="ventas">Vender</button>
+    <button class="pestana" data-vista="productos">Productos</button>
+    <button class="pestana" data-vista="reportes">Reportes</button>
+  </nav>
+</header>
+
+<!-- ================= VENTAS ================= -->
+<section id="vista-ventas" class="vista activa">
+  <div class="fila-escaneo">
+    <input id="entrada-codigo" type="text" inputmode="numeric" autocomplete="off"
+           placeholder="Código de barras" enterkeyhint="go">
+    <button id="btn-camara" class="btn btn-primario" title="Escanear con la cámara">📷</button>
+  </div>
+
+  <div id="alerta" class="alerta oculto"></div>
+
+  <div id="carrito" class="carrito"></div>
+
+  <div class="panel-pago">
+    <div class="etiqueta-campo">TOTAL</div>
+    <div id="total" class="total">BS 0.00</div>
+
+    <div class="etiqueta-campo">MÉTODO DE PAGO</div>
+    <div class="metodos">
+      <button class="btn btn-metodo activo" data-metodo="efectivo">Efectivo</button>
+      <button class="btn btn-metodo" data-metodo="qr">QR</button>
+      <button class="btn btn-metodo" data-metodo="transferencia">Transfer.</button>
+    </div>
+
+    <div id="bloque-efectivo">
+      <div class="etiqueta-campo">EFECTIVO RECIBIDO</div>
+      <input id="entrada-recibido" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+      <div class="billetes">
+        <button class="btn btn-billete" data-billete="exacto">Exacto</button>
+        <button class="btn btn-billete" data-billete="10">BS 10</button>
+        <button class="btn btn-billete" data-billete="20">BS 20</button>
+        <button class="btn btn-billete" data-billete="50">BS 50</button>
+        <button class="btn btn-billete" data-billete="100">BS 100</button>
+        <button class="btn btn-billete" data-billete="200">BS 200</button>
+      </div>
+      <div class="etiqueta-campo">CAMBIO</div>
+      <div id="cambio" class="cambio">BS 0.00</div>
+    </div>
+
+    <button id="btn-cobrar" class="btn btn-cobrar">COBRAR</button>
+    <div id="contador-articulos" class="contador">0 artículos</div>
+  </div>
+</section>
+
+<!-- ================= PRODUCTOS ================= -->
+<section id="vista-productos" class="vista">
+  <input id="buscador-productos" type="search" placeholder="Buscar producto…">
+  <div id="lista-productos" class="lista-productos"></div>
+</section>
+
+<!-- ================= REPORTES ================= -->
+<section id="vista-reportes" class="vista">
+  <div class="tarjetas">
+    <div class="tarjeta"><div class="tarjeta-titulo">Ventas de hoy</div><div id="rep-ventas-hoy" class="tarjeta-numero">0</div></div>
+    <div class="tarjeta"><div class="tarjeta-titulo">Total del día</div><div id="rep-total-hoy" class="tarjeta-numero">BS 0.00</div></div>
+  </div>
+  <div class="etiqueta-campo">ÚLTIMAS VENTAS</div>
+  <div id="lista-ventas" class="lista-ventas"></div>
+</section>
+
+<!-- ================= CÁMARA ================= -->
+<div id="modal-camara" class="modal oculto">
+  <div class="modal-caja">
+    <div class="modal-titulo">Escanea el código</div>
+    <div id="lector"></div>
+    <div class="modal-acciones">
+      <button id="btn-flash" class="btn btn-secundario oculto">🔦 Linterna</button>
+      <button id="btn-cerrar-camara" class="btn btn-secundario">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= RECIBO ================= -->
+<div id="modal-recibo" class="modal oculto">
+  <div class="modal-caja">
+    <div class="modal-titulo">Venta registrada</div>
+    <pre id="recibo" class="recibo"></pre>
+    <div class="modal-acciones">
+      <button id="btn-imprimir" class="btn btn-primario">Imprimir</button>
+      <button id="btn-cerrar-recibo" class="btn btn-secundario">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

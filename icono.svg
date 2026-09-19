@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1A222E"/>
+  <rect x="96" y="150" width="320" height="180" rx="24" fill="#F59E0B"/>
+  <rect x="120" y="180" width="24" height="120" fill="#1A222E"/>
+  <rect x="164" y="180" width="12" height="120" fill="#1A222E"/>
+  <rect x="196" y="180" width="28" height="120" fill="#1A222E"/>
+  <rect x="244" y="180" width="12" height="120" fill="#1A222E"/>
+  <rect x="276" y="180" width="20" height="120" fill="#1A222E"/>
+  <rect x="316" y="180" width="12" height="120" fill="#1A222E"/>
+  <rect x="348" y="180" width="28" height="120" fill="#1A222E"/>
+  <text x="256" y="400" font-family="Segoe UI, Arial, sans-serif" font-size="56" font-weight="700" fill="#FFFFFF" text-anchor="middle">PV</text>
+</svg>
