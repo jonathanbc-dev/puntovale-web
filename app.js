@@ -6,6 +6,7 @@ const MONEDA = "BS";
 const BILLETES = [10, 20, 50, 100, 200];
 const LS_PRODUCTOS = "pv_productos";
 const LS_VENTAS = "pv_ventas";
+const LS_MOVIMIENTOS = "pv_movimientos";
 
 /* Productos iniciales (exportados de la base de datos de escritorio). */
 const PRODUCTOS_INICIALES = [
@@ -22,6 +23,7 @@ const PRODUCTOS_INICIALES = [
 /* ---------------- Estado ---------------- */
 let productos = cargar(LS_PRODUCTOS, PRODUCTOS_INICIALES);
 let ventas = cargar(LS_VENTAS, []);
+let movimientos = cargar(LS_MOVIMIENTOS, []);
 let carrito = [];
 let metodoPago = "efectivo";
 let escaner = null;
@@ -47,6 +49,7 @@ document.querySelectorAll(".pestana").forEach(boton => {
     document.querySelectorAll(".vista").forEach(v => v.classList.remove("activa"));
     $("vista-" + boton.dataset.vista).classList.add("activa");
     if (boton.dataset.vista === "productos") pintarProductos();
+    if (boton.dataset.vista === "inventario") pintarInventario();
     if (boton.dataset.vista === "reportes") pintarReportes();
     if (boton.dataset.vista === "ventas") $("entrada-codigo").focus();
   });
@@ -253,10 +256,13 @@ $("btn-cobrar").addEventListener("click", () => {
   ventas.push(venta);
   guardar(LS_VENTAS, ventas);
 
-  /* Descontar stock */
+  /* Descontar stock y registrar movimientos de inventario */
   carrito.forEach(r => {
     const p = buscarProducto(r.codigo);
-    if (p) p.stock -= r.cantidad;
+    if (p) {
+      p.stock -= r.cantidad;
+      registrarMov(p, "venta", -r.cantidad, p.stock, `Venta Nro. ${venta.id}`);
+    }
   });
   guardar(LS_PRODUCTOS, productos);
 
@@ -435,6 +441,120 @@ $("btn-eliminar-producto").addEventListener("click", () => {
   guardar(LS_PRODUCTOS, productos);
   cerrarProducto();
   pintarProductos();
+});
+
+/* ================= INVENTARIO ================= */
+function registrarMov(producto, tipo, cantidad, resultante, motivo) {
+  movimientos.push({
+    fecha: new Date().toISOString(),
+    codigo: producto.codigo,
+    nombre: producto.nombre,
+    tipo,                       // "entrada" | "ajuste" | "venta"
+    cantidad,
+    resultante,
+    motivo: motivo || "",
+  });
+  guardar(LS_MOVIMIENTOS, movimientos);
+}
+
+let accionInventario = null;    // "entrada" | "ajuste"
+let productoInventario = null;
+
+function pintarInventario() {
+  $("inv-productos").textContent = productos.length;
+  const unidades = productos.reduce((s, p) => s + (p.stock || 0), 0);
+  $("inv-unidades").textContent = Math.round(unidades * 1000) / 1000;
+  const valor = productos.reduce((s, p) => s + (p.stock || 0) * (p.compra || 0), 0);
+  $("inv-valor").textContent = dinero(Math.round(valor * 100) / 100);
+
+  const caja = $("lista-inventario");
+  caja.innerHTML = "";
+  [...productos].sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(p => {
+    const stock = p.stock || 0;
+    const estado = stock <= 0 ? "AGOTADO" : (p.minimo && stock <= p.minimo ? "BAJO" : "OK");
+    const div = document.createElement("div");
+    div.className = "producto fila-inventario";
+    div.innerHTML = `
+      <div>
+        <div class="producto-nombre">${p.nombre}</div>
+        <div class="producto-detalle">${p.codigo} · costo: ${numero(p.compra || 0)} ·
+          <span class="${estado === "OK" ? "" : "stock-bajo"}">stock: ${stock} ${estado !== "OK" ? `(${estado})` : ""}</span></div>
+      </div>
+      <div class="inv-acciones">
+        <button class="btn btn-primario btn-mini" data-inv="entrada">+ Entrada</button>
+        <button class="btn btn-secundario btn-mini" data-inv="ajuste">Ajuste</button>
+      </div>`;
+    div.querySelector('[data-inv="entrada"]').addEventListener("click", e => {
+      e.stopPropagation();
+      abrirInventario(p, "entrada");
+    });
+    div.querySelector('[data-inv="ajuste"]').addEventListener("click", e => {
+      e.stopPropagation();
+      abrirInventario(p, "ajuste");
+    });
+    caja.appendChild(div);
+  });
+
+  const historial = $("lista-movimientos");
+  historial.innerHTML = "";
+  [...movimientos].reverse().slice(0, 30).forEach(m => {
+    const fecha = new Date(m.fecha);
+    const div = document.createElement("div");
+    div.className = "venta-fila";
+    const firmado = m.cantidad > 0 ? `+${m.cantidad}` : `${m.cantidad}`;
+    div.innerHTML = `
+      <span><span class="mov-tipo mov-${m.tipo}">${m.tipo.toUpperCase()}</span> ${m.nombre}</span>
+      <span class="hora">${fecha.toLocaleDateString("es-VE")} ${fecha.toLocaleTimeString("es-VE", { hour: "2-digit", minute: "2-digit" })}</span>
+      <span class="monto">${firmado} → ${m.resultante}</span>`;
+    historial.appendChild(div);
+  });
+  if (movimientos.length === 0) {
+    historial.innerHTML = '<div class="carrito-vacio">Aún no hay movimientos</div>';
+  }
+}
+
+function abrirInventario(producto, modo) {
+  accionInventario = modo;
+  productoInventario = producto;
+  const esEntrada = modo === "entrada";
+  $("titulo-inventario").textContent = esEntrada ? "Ingreso de mercadería" : "Ajuste de stock";
+  $("info-inventario").textContent = `${producto.nombre} (${producto.codigo}) · stock actual: ${producto.stock || 0}`;
+  $("etiqueta-inv-cantidad").textContent = esEntrada ? "CANTIDAD A INGRESAR" : "STOCK RESULTANTE";
+  $("bloque-inv-costo").classList.toggle("oculto", !esEntrada);
+  $("campo-inv-cantidad").value = "";
+  $("campo-inv-costo").value = "";
+  $("campo-inv-motivo").value = esEntrada ? "Ingreso de mercadería" : "Ajuste manual";
+  $("modal-inventario").classList.remove("oculto");
+  $("campo-inv-cantidad").focus();
+}
+
+$("btn-cancelar-inv").addEventListener("click", () => $("modal-inventario").classList.add("oculto"));
+
+$("btn-guardar-inv").addEventListener("click", () => {
+  if (!productoInventario) return;
+  const cantidad = parseFloat($("campo-inv-cantidad").value);
+  const motivo = $("campo-inv-motivo").value.trim() || (accionInventario === "entrada" ? "Ingreso de mercadería" : "Ajuste manual");
+  if (isNaN(cantidad) || (accionInventario === "entrada" ? cantidad <= 0 : cantidad < 0)) {
+    alert(accionInventario === "entrada"
+      ? "La cantidad debe ser mayor a 0."
+      : "El stock resultante debe ser 0 o más.");
+    return;
+  }
+  if (accionInventario === "entrada") {
+    productoInventario.stock = Math.round(((productoInventario.stock || 0) + cantidad) * 1000) / 1000;
+    const costo = parseFloat($("campo-inv-costo").value);
+    if (!isNaN(costo) && costo >= 0) productoInventario.compra = costo;
+    registrarMov(productoInventario, "entrada", cantidad, productoInventario.stock, motivo);
+  } else {
+    const nuevo = Math.round(cantidad * 1000) / 1000;
+    const delta = Math.round((nuevo - (productoInventario.stock || 0)) * 1000) / 1000;
+    if (delta === 0) { $("modal-inventario").classList.add("oculto"); return; }
+    productoInventario.stock = nuevo;
+    registrarMov(productoInventario, "ajuste", delta, nuevo, motivo);
+  }
+  guardar(LS_PRODUCTOS, productos);
+  $("modal-inventario").classList.add("oculto");
+  pintarInventario();
 });
 
 /* ================= REPORTES ================= */

@@ -16,6 +16,7 @@
   <nav class="pestanas">
     <button class="pestana activa" data-vista="ventas">Vender</button>
     <button class="pestana" data-vista="productos">Productos</button>
+    <button class="pestana" data-vista="inventario">Inventario</button>
     <button class="pestana" data-vista="reportes">Reportes</button>
   </nav>
 </header>
@@ -78,6 +79,21 @@
   <div id="lista-productos" class="lista-productos"></div>
 </section>
 
+<!-- ================= INVENTARIO ================= -->
+<section id="vista-inventario" class="vista">
+  <div class="tarjetas">
+    <div class="tarjeta"><div class="tarjeta-titulo">Productos</div><div id="inv-productos" class="tarjeta-numero">0</div></div>
+    <div class="tarjeta"><div class="tarjeta-titulo">Unidades en stock</div><div id="inv-unidades" class="tarjeta-numero">0</div></div>
+    <div class="tarjeta"><div class="tarjeta-titulo">Valor (costo)</div><div id="inv-valor" class="tarjeta-numero">BS 0.00</div></div>
+  </div>
+
+  <div class="etiqueta-campo">PRODUCTOS</div>
+  <div id="lista-inventario" class="lista-productos"></div>
+
+  <div class="etiqueta-campo">ÚLTIMOS MOVIMIENTOS</div>
+  <div id="lista-movimientos" class="lista-ventas"></div>
+</section>
+
 <!-- ================= REPORTES ================= -->
 <section id="vista-reportes" class="vista">
   <div class="tarjetas">
@@ -96,6 +112,26 @@
     <div class="modal-acciones">
       <button id="btn-flash" class="btn btn-secundario oculto">🔦 Linterna</button>
       <button id="btn-cerrar-camara" class="btn btn-secundario">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= INVENTARIO (ENTRADA / AJUSTE) ================= -->
+<div id="modal-inventario" class="modal oculto">
+  <div class="modal-caja">
+    <div class="modal-titulo" id="titulo-inventario">Ingreso de mercadería</div>
+    <div id="info-inventario" class="producto-detalle"></div>
+    <div class="etiqueta-campo" id="etiqueta-inv-cantidad">CANTIDAD A INGRESAR</div>
+    <input id="campo-inv-cantidad" type="number" inputmode="decimal" min="0" step="0.001" placeholder="0">
+    <div id="bloque-inv-costo">
+      <div class="etiqueta-campo">COSTO UNITARIO (opcional, actualiza el costo)</div>
+      <input id="campo-inv-costo" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+    </div>
+    <div class="etiqueta-campo">MOTIVO</div>
+    <input id="campo-inv-motivo" type="text" autocomplete="off">
+    <div class="modal-acciones">
+      <button id="btn-cancelar-inv" class="btn btn-secundario">Cancelar</button>
+      <button id="btn-guardar-inv" class="btn btn-primario">Guardar</button>
     </div>
   </div>
 </div>

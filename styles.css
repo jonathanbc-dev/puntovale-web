@@ -234,6 +234,22 @@ body {
 #buscador-productos:focus { border-color: var(--primario); }
 .btn-peligro { background: var(--error) !important; color: #fff !important; }
 .producto { cursor: pointer; }
+
+/* ---------- Inventario ---------- */
+.fila-inventario { cursor: default; }
+.inv-acciones { display: flex; gap: 6px; }
+.mov-tipo {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #fff;
+  margin-right: 4px;
+}
+.mov-entrada { background: var(--exito); }
+.mov-venta { background: var(--error); }
+.mov-ajuste { background: var(--texto-suave); }
 .producto {
   background: var(--superficie);
   border-radius: 10px;

@@ -2,7 +2,7 @@
    - Páginas HTML: primero red (versión nueva), cache solo si no hay internet.
    - Archivos estáticos (css/js/iconos): primero cache (rápido), se actualizan solos.
    Cambiar el nombre de CACHE obliga a descartar cachés viejos. */
-const CACHE = "puntovale-web-v3";
+const CACHE = "puntovale-web-v4";
 const ARCHIVOS = [
   "./",
   "./index.html",
