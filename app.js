@@ -58,22 +58,31 @@ function buscarProducto(codigo) { return productos.find(p => p.codigo === codigo
 function agregarPorCodigo(codigo) {
   const producto = buscarProducto(codigo);
   if (!producto) {
-    mostrarAlerta(`Código ${codigo} no está registrado.`);
+    mostrarAlerta(`Código ${codigo} no está registrado.`, codigo);
     return;
   }
   ocultarAlerta();
   const renglon = carrito.find(r => r.codigo === codigo);
-  const enCarrito = renglon ? renglon.cantidad : 0;
-  if (enCarrito + 1 > producto.stock) {
-    mostrarAlerta(`Solo hay ${producto.stock} de '${producto.nombre}'.`);
-    return;
-  }
   if (renglon) renglon.cantidad++;
   else carrito.push({ codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad: 1 });
   pintarCarrito();
 }
 
-function mostrarAlerta(texto) { const a = $("alerta"); a.textContent = texto; a.classList.remove("oculto"); }
+function mostrarAlerta(texto, codigoPendiente) {
+  const a = $("alerta");
+  a.innerHTML = "";
+  const span = document.createElement("span");
+  span.textContent = texto;
+  a.appendChild(span);
+  if (codigoPendiente) {
+    const boton = document.createElement("button");
+    boton.className = "btn btn-primario btn-mini";
+    boton.textContent = "Crear producto";
+    boton.addEventListener("click", () => abrirProducto(null, codigoPendiente));
+    a.appendChild(boton);
+  }
+  a.classList.remove("oculto");
+}
 function ocultarAlerta() { $("alerta").classList.add("oculto"); }
 
 function pintarCarrito() {
@@ -112,10 +121,7 @@ $("carrito").addEventListener("click", e => {
   if (!boton) return;
   const i = Number(boton.dataset.i);
   const r = carrito[i];
-  const producto = buscarProducto(r.codigo);
   if (boton.dataset.accion === "mas") {
-    if (r.cantidad + 1 > producto.stock) { mostrarAlerta(`Solo hay ${producto.stock} de '${r.nombre}'.`); return; }
-    ocultarAlerta();
     r.cantidad++;
   } else {
     r.cantidad--;
@@ -131,6 +137,47 @@ $("entrada-codigo").addEventListener("keydown", e => {
     e.target.value = "";
     if (codigo) agregarPorCodigo(codigo);
   }
+});
+
+/* ================= BÚSQUEDA POR NOMBRE ================= */
+$("entrada-nombre").addEventListener("input", () => {
+  const texto = $("entrada-nombre").value.trim().toLowerCase();
+  const caja = $("resultados-nombre");
+  if (!texto) { caja.classList.add("oculto"); caja.innerHTML = ""; return; }
+  const coincidencias = productos
+    .filter(p => p.nombre.toLowerCase().includes(texto) || p.codigo.includes(texto))
+    .slice(0, 8);
+  caja.innerHTML = "";
+  if (coincidencias.length === 0) {
+    caja.classList.add("oculto");
+    return;
+  }
+  coincidencias.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "resultado-nombre";
+    div.innerHTML = `
+      <span>${p.nombre}</span>
+      <span class="resultado-precio">${dinero(p.precio)}</span>`;
+    div.addEventListener("click", () => {
+      ocultarAlerta();
+      const renglon = carrito.find(r => r.codigo === p.codigo);
+      if (renglon) renglon.cantidad++;
+      else carrito.push({ codigo: p.codigo, nombre: p.nombre, precio: p.precio, cantidad: 1 });
+      $("entrada-nombre").value = "";
+      caja.classList.add("oculto");
+      caja.innerHTML = "";
+      pintarCarrito();
+    });
+    caja.appendChild(div);
+  });
+  caja.classList.remove("oculto");
+});
+
+$("entrada-nombre").addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const primero = document.querySelector("#resultados-nombre .resultado-nombre");
+  if (primero) primero.click();
 });
 
 /* ================= PAGO ================= */
@@ -189,8 +236,11 @@ $("btn-cobrar").addEventListener("click", () => {
   let recibido = 0, cambio = 0;
   if (metodoPago === "efectivo") {
     recibido = montoRecibido() || total;
-    if (recibido < total) { mostrarAlerta("El efectivo recibido es menor que el total."); return; }
     cambio = Math.round((recibido - total) * 100) / 100;
+    if (recibido < total && !confirm(
+        `El cliente entregó ${dinero(recibido)} y el total es ${dinero(total)}. ¿Cobrar de todos modos?`)) {
+      return;
+    }
   }
   ocultarAlerta();
 
@@ -304,26 +354,88 @@ function cerrarCamara() {
 $("btn-cerrar-camara").addEventListener("click", cerrarCamara);
 
 /* ================= PRODUCTOS ================= */
+let productoEditando = null;   // índice del producto en edición (o null = nuevo)
+
 function pintarProductos() {
   const texto = ($("buscador-productos").value || "").toLowerCase();
   const caja = $("lista-productos");
   caja.innerHTML = "";
-  productos
-    .filter(p => p.nombre.toLowerCase().includes(texto) || p.codigo.includes(texto))
-    .forEach(p => {
-      const bajo = p.stock <= p.minimo;
-      const div = document.createElement("div");
-      div.className = "producto";
-      div.innerHTML = `
-        <div>
-          <div class="producto-nombre">${p.nombre}</div>
-          <div class="producto-detalle">${p.codigo} · <span class="${bajo ? "stock-bajo" : ""}">stock: ${p.stock}</span></div>
-        </div>
-        <div class="producto-precio">${dinero(p.precio)}</div>`;
-      caja.appendChild(div);
-    });
+  const filtrados = productos
+    .filter(p => p.nombre.toLowerCase().includes(texto) || p.codigo.includes(texto));
+  if (filtrados.length === 0) {
+    caja.innerHTML = '<div class="carrito-vacio">No hay productos que coincidan</div>';
+    return;
+  }
+  filtrados.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "producto";
+    div.innerHTML = `
+      <div>
+        <div class="producto-nombre">${p.nombre}</div>
+        <div class="producto-detalle">${p.codigo} · costo: ${numero(p.compra || 0)}</div>
+      </div>
+      <div class="producto-precio">${dinero(p.precio)}</div>`;
+    div.addEventListener("click", () => abrirProducto(p));
+    caja.appendChild(div);
+  });
 }
 $("buscador-productos").addEventListener("input", pintarProductos);
+
+function abrirProducto(producto, codigoPrellenado) {
+  productoEditando = producto ? productos.indexOf(producto) : null;
+  $("titulo-producto").textContent = producto ? "Editar producto" : "Nuevo producto";
+  $("campo-codigo").value = producto ? producto.codigo : (codigoPrellenado || "");
+  $("campo-nombre").value = producto ? producto.nombre : "";
+  $("campo-precio").value = producto ? producto.precio : "";
+  $("campo-costo").value = producto ? (producto.compra || "") : "";
+  $("btn-eliminar-producto").classList.toggle("oculto", !producto);
+  $("modal-producto").classList.remove("oculto");
+  $("campo-codigo").focus();
+}
+
+function cerrarProducto() { $("modal-producto").classList.add("oculto"); }
+
+$("btn-nuevo-producto").addEventListener("click", () => abrirProducto(null));
+$("btn-cancelar-producto").addEventListener("click", cerrarProducto);
+
+$("btn-guardar-producto").addEventListener("click", () => {
+  const codigo = $("campo-codigo").value.trim();
+  const nombre = $("campo-nombre").value.trim();
+  const precio = parseFloat($("campo-precio").value);
+  const compra = parseFloat($("campo-costo").value) || 0;
+  if (!codigo) { alert("El código de barras es obligatorio."); return; }
+  if (!nombre) { alert("El nombre del producto es obligatorio."); return; }
+  if (isNaN(precio) || precio < 0) { alert("El precio de venta debe ser un número válido."); return; }
+  const duplicado = productos.find(p => p.codigo === codigo && productos.indexOf(p) !== productoEditando);
+  if (duplicado) { alert("Ya existe un producto con ese código de barras."); return; }
+
+  if (productoEditando === null) {
+    productos.push({ codigo, nombre, precio, compra, stock: 0, minimo: 0 });
+  } else {
+    const p = productos[productoEditando];
+    p.codigo = codigo; p.nombre = nombre; p.precio = precio; p.compra = compra;
+  }
+  guardar(LS_PRODUCTOS, productos);
+  cerrarProducto();
+  pintarProductos();
+
+  /* Si el producto se creó desde una venta con código pendiente, se agrega al carrito */
+  if (productoEditando === null && !$("alerta").classList.contains("oculto")) {
+    ocultarAlerta();
+    agregarPorCodigo(codigo);
+  }
+  $("entrada-codigo").focus();
+});
+
+$("btn-eliminar-producto").addEventListener("click", () => {
+  if (productoEditando === null) return;
+  const p = productos[productoEditando];
+  if (!confirm(`¿Eliminar '${p.nombre}' del catálogo?`)) return;
+  productos.splice(productoEditando, 1);
+  guardar(LS_PRODUCTOS, productos);
+  cerrarProducto();
+  pintarProductos();
+});
 
 /* ================= REPORTES ================= */
 function pintarReportes() {

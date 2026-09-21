@@ -72,6 +72,38 @@ body {
 #entrada-codigo:focus { border-color: var(--primario); background: #fff; }
 #btn-camara { font-size: 22px; padding: 0 16px; }
 
+/* ---------- Búsqueda por nombre ---------- */
+#entrada-nombre {
+  flex: 1;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 2px solid var(--borde);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--texto);
+  outline: none;
+}
+#entrada-nombre:focus { border-color: var(--primario); }
+.resultados-nombre {
+  background: var(--superficie);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .14);
+  overflow: hidden;
+  margin-top: 6px;
+}
+.resultado-nombre {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 12px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--borde);
+  cursor: pointer;
+}
+.resultado-nombre:last-child { border-bottom: none; }
+.resultado-nombre:active { background: var(--borde); }
+.resultado-precio { font-weight: 700; color: var(--primario); white-space: nowrap; }
+
 .alerta {
   margin-top: 8px;
   background: var(--error-fondo);
@@ -80,7 +112,12 @@ body {
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
+.btn-mini { padding: 6px 10px !important; font-size: 12px !important; }
 .oculto { display: none !important; }
 
 /* ---------- Carrito ---------- */
@@ -183,6 +220,8 @@ body {
 .btn-secundario { background: var(--borde); color: var(--texto); }
 
 /* ---------- Productos ---------- */
+.fila-productos { display: flex; gap: 8px; margin-bottom: 10px; }
+.fila-productos #buscador-productos { flex: 1; margin-bottom: 0; }
 #buscador-productos {
   width: 100%;
   padding: 12px;
@@ -193,6 +232,8 @@ body {
   outline: none;
 }
 #buscador-productos:focus { border-color: var(--primario); }
+.btn-peligro { background: var(--error) !important; color: #fff !important; }
+.producto { cursor: pointer; }
 .producto {
   background: var(--superficie);
   border-radius: 10px;
@@ -256,6 +297,21 @@ body {
 #lector { width: 100%; border-radius: 10px; overflow: hidden; }
 .modal-acciones { display: flex; gap: 8px; margin-top: 12px; }
 .modal-acciones .btn { flex: 1; }
+
+/* Formulario de producto */
+#modal-producto input {
+  width: 100%;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 2px solid var(--borde);
+  border-radius: 10px;
+  outline: none;
+  color: var(--texto);
+  background: #fff;
+}
+#modal-producto input:focus { border-color: var(--primario); }
+.fila-2col { display: flex; gap: 10px; }
+.fila-2col > div { flex: 1; }
 
 /* ---------- Recibo (58 mm, 32 columnas) ---------- */
 .recibo {

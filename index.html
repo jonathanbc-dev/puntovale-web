@@ -28,6 +28,12 @@
     <button id="btn-camara" class="btn btn-primario" title="Escanear con la cámara">📷</button>
   </div>
 
+  <div class="fila-escaneo">
+    <input id="entrada-nombre" type="text" autocomplete="off"
+           placeholder="Buscar por nombre" enterkeyhint="search">
+  </div>
+  <div id="resultados-nombre" class="resultados-nombre oculto"></div>
+
   <div id="alerta" class="alerta oculto"></div>
 
   <div id="carrito" class="carrito"></div>
@@ -65,7 +71,10 @@
 
 <!-- ================= PRODUCTOS ================= -->
 <section id="vista-productos" class="vista">
-  <input id="buscador-productos" type="search" placeholder="Buscar producto…">
+  <div class="fila-productos">
+    <input id="buscador-productos" type="search" placeholder="Buscar producto…">
+    <button id="btn-nuevo-producto" class="btn btn-primario">+ Producto</button>
+  </div>
   <div id="lista-productos" class="lista-productos"></div>
 </section>
 
@@ -87,6 +96,32 @@
     <div class="modal-acciones">
       <button id="btn-flash" class="btn btn-secundario oculto">🔦 Linterna</button>
       <button id="btn-cerrar-camara" class="btn btn-secundario">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PRODUCTO (ALTA / EDICIÓN) ================= -->
+<div id="modal-producto" class="modal oculto">
+  <div class="modal-caja">
+    <div class="modal-titulo" id="titulo-producto">Nuevo producto</div>
+    <div class="etiqueta-campo">CÓDIGO DE BARRAS</div>
+    <input id="campo-codigo" type="text" inputmode="numeric" autocomplete="off">
+    <div class="etiqueta-campo">NOMBRE DEL PRODUCTO *</div>
+    <input id="campo-nombre" type="text" autocomplete="off">
+    <div class="fila-2col">
+      <div>
+        <div class="etiqueta-campo">PRECIO VENTA *</div>
+        <input id="campo-precio" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div>
+        <div class="etiqueta-campo">COSTO</div>
+        <input id="campo-costo" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+    <div class="modal-acciones">
+      <button id="btn-eliminar-producto" class="btn btn-peligro oculto">Eliminar</button>
+      <button id="btn-cancelar-producto" class="btn btn-secundario">Cancelar</button>
+      <button id="btn-guardar-producto" class="btn btn-primario">Guardar</button>
     </div>
   </div>
 </div>
